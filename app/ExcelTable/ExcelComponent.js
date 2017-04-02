@@ -15,16 +15,38 @@ export default class ExcelComponent extends React.Component {
         this.setState({data, sortBy: column, decending});
     }
 
+    _save(e) {
+        e.preventDefault();
+        var input = e.target.firstChild;
+        var data = this.state.data.slice();
+        var edit = this.state.edit;
+        var input = e.target.firstChild;
+        data[edit.row][edit.cell] = input.value;
+        this.setState({
+            data, edit: null
+        })
+    }
+
+    _openEditor(event) {
+        this.setState({
+            edit: {
+                row: parseInt(event.target.dataset.row),
+                cell: event.target.cellIndex
+            }
+        })
+    }
+
     constructor(props) {
         super(props);
-        this.state = {data: this.props.dataComponent.data(), sortBy: null, decending: false};
+        this.state = {data: this.props.dataComponent.data(), sortBy: null, decending: false, edit: null};
         this._sort = this._sort.bind(this);
+        this._openEditor = this._openEditor.bind(this);
+        this._save = this._save.bind(this);
     }
 
 
     render() {
         var dataComponent = this.props.dataComponent;
-        console.log(dataComponent);
         let headerCells = [];
         var headers = dataComponent.headers();
         for(let i = 0; i < headers.length; i++) {
@@ -36,11 +58,18 @@ export default class ExcelComponent extends React.Component {
         }
         
         var data = this.state.data;
+        var edit = this.state.edit;
         var rows = [];
         for(let i = 0; i < data.length; i++) {
             var rowCells = [];
             for(let j = 0; j <data[i].length; j++) {
-                rowCells.push(<td key={j}>{data[i][j]}</td>);
+                var content = data[i][j];
+                if(edit && edit.row === i && edit.cell === j){
+                    content = <form onSubmit={this._save}>
+                                <input type="text" defaultValue={content} /> 
+                              </form>
+                }
+                rowCells.push(<td key={j} data-row={i}>{content}</td>);
             }
             rows.push(<tr key={i}>{rowCells}</tr>)
         }
@@ -50,7 +79,7 @@ export default class ExcelComponent extends React.Component {
             <thead>
                 <tr>{headerCells}</tr>
             </thead>
-            <tbody>
+            <tbody onDoubleClick={this._openEditor}>
                 {rows}
             </tbody>
         </table>);
