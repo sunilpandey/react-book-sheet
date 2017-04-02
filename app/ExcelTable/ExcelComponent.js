@@ -4,14 +4,20 @@ export default class ExcelComponent extends React.Component {
     _sort(event) {
         var column = event.target.cellIndex;
         var data = this.state.data.slice();
+        var decending = this.state.sortBy === column && !this.state.decending
         data.sort(function(a, b) {
-            return a[column] > b[column] ? 1 : -1;
+            if(decending) {
+               return a[column] > b[column] ? 1 : -1;
+            }else {
+                return a[column] > b[column] ? -1 : 1;
+            }
         })
+        this.setState({data, sortBy: column, decending});
     }
 
     constructor(props) {
         super(props);
-        this.state = {data: this.props.dataComponent.data()};
+        this.state = {data: this.props.dataComponent.data(), sortBy: null, decending: false};
         this._sort = this._sort.bind(this);
     }
 
@@ -22,7 +28,11 @@ export default class ExcelComponent extends React.Component {
         let headerCells = [];
         var headers = dataComponent.headers();
         for(let i = 0; i < headers.length; i++) {
-            headerCells.push(<th key={i} onClick={this._sort}>{headers[i]}</th>);
+            var title = headers[i];
+            if(this.state.sortBy === i) {
+                title += this.state.decending? '\u2191': '\u2193';
+            }
+            headerCells.push(<th key={i} onClick={this._sort}>{title}</th>);
         }
         
         var data = this.state.data;
