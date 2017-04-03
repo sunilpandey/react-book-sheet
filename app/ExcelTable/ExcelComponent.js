@@ -1,6 +1,9 @@
 import React from 'react';
 
 export default class ExcelComponent extends React.Component {
+    _toggleSearch() {
+        this.setState({search: !this.state.search});
+    }
     _sort(event) {
         var column = event.target.cellIndex;
         var data = this.state.data.slice();
@@ -12,7 +15,7 @@ export default class ExcelComponent extends React.Component {
                 return a[column] > b[column] ? -1 : 1;
             }
         })
-        this.setState({data, sortBy: column, decending});
+        this.setState({data, sortBy: column, decending, search: null});
     }
 
     _save(e) {
@@ -75,13 +78,33 @@ export default class ExcelComponent extends React.Component {
         }
 
         return (
-        <table>
-            <thead>
-                <tr>{headerCells}</tr>
-            </thead>
-            <tbody onDoubleClick={this._openEditor}>
-                {rows}
-            </tbody>
-        </table>);
+            <div>
+                <button onClick={this._toggleSearch.bind(this)}>Search</button>
+                <table>
+                    <thead>
+                        <tr>{headerCells}</tr>
+                    </thead>
+                    <tbody onDoubleClick={this._openEditor}>
+                        {this._searchToolBar(headers).concat(rows)}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
+    _searchToolBar(headers) {
+        var searchBars = [];
+        if(this.state.search) {
+            for(let i = 0; i < headers.length; i++) {
+                searchBars.push(<td onChange={this._searchChange.bind(this)} key={i}><input type="text" /></td>);
+            }
+            return [<tr>{searchBars}</tr>]    
+        }
+        
+        return searchBars;
+    }
+
+    _searchChange(event) {
+
     }
 }
