@@ -15,7 +15,7 @@ export default class ExcelComponent extends React.Component {
                 return a[column] > b[column] ? -1 : 1;
             }
         })
-        this.setState({data, sortBy: column, decending, search: null});
+        this.setState({data, sortBy: column, decending, search: null, filteredData: null});
     }
 
     _save(e) {
@@ -59,8 +59,11 @@ export default class ExcelComponent extends React.Component {
             }
             headerCells.push(<th key={i} onClick={this._sort}>{title}</th>);
         }
-        
+
         var data = this.state.data;
+        if(this.state.filteredData) {
+            data = this.state.filteredData;
+        }
         var edit = this.state.edit;
         var rows = [];
         for(let i = 0; i < data.length; i++) {
@@ -96,7 +99,7 @@ export default class ExcelComponent extends React.Component {
         var searchBars = [];
         if(this.state.search) {
             for(let i = 0; i < headers.length; i++) {
-                searchBars.push(<td onChange={this._searchChange.bind(this)} key={i}><input type="text" /></td>);
+                searchBars.push(<td onChange={this._searchChange.bind(this)} key={i}><input type="text" data-id={i}/></td>);
             }
             return [<tr>{searchBars}</tr>]    
         }
@@ -105,6 +108,20 @@ export default class ExcelComponent extends React.Component {
     }
 
     _searchChange(event) {
+        var searchValue = event.target.value;
+        var filteredData = undefined
+        if(searchValue.length) {
+            var data = this.state.data.slice();
+            var columnId = event.target.dataset.id;
+            filteredData = [];
+            for(let i = 0; i < data.length; i++) {
+                if(data[i][columnId].toUpperCase().startsWith(searchValue.toUpperCase())) {
+                    filteredData.push(data[i])
+                }
+            }
+        }
+
+        this.setState({filteredData});
 
     }
 }
